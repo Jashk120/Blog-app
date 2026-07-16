@@ -1,0 +1,38 @@
+---
+import { getCollection, render } from 'astro:content';
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+export async function getStaticPaths() {
+  const blogEntries = await getCollection('blog');
+  return blogEntries.map(entry => ({
+    params: { slug: entry.id }, props: { entry },
+  }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+---
+
+<BaseLayout title={entry.data.title}>
+  <article>
+    <h1>{entry.data.title}</h1>
+    {entry.data.description && <p><em>{entry.data.description}</em></p>}
+    <Content />
+  </article>
+
+  <script src="https://giscus.app/client.js"
+    data-repo="Jashk120/blog-posts"
+    data-repo-id="R_kgDOTaAQGA"
+    data-category="Comments"
+    data-category-id="DIC_kwDOTaAQGM4DBTAF"
+    data-mapping="pathname"
+    data-strict="0"
+    data-reactions-enabled="1"
+    data-emit-metadata="0"
+    data-input-position="bottom"
+    data-theme="preferred_color_scheme"
+    data-lang="en"
+    crossorigin="anonymous"
+    async>
+  </script>
+</BaseLayout>

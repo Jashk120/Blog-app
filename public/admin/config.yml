@@ -1,0 +1,19 @@
+backend:
+  name: github
+  repo: Jashk120/blog-posts
+  branch: main
+
+publish_mode: editorial_workflow
+
+collections:
+  - name: posts
+    label: Posts
+    folder: src/content/blog
+    create: true
+    slug: "{{slug}}"
+    extension: md
+    format: frontmatter
+    fields:
+      - { label: Title, name: title, widget: string }
+      - { label: Description, name: description, widget: string }
+      - { label: Body, name: body, widget: markdown }
