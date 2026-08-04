@@ -1,0 +1,3 @@
+[build]
+  command = "git submodule update --init --remote --checkout src/content/blog && npm run build"
+  publish = "dist"

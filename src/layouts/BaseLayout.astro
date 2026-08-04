@@ -19,6 +19,35 @@ const plausibleDomain = import.meta.env.PUBLIC_PLAUSIBLE_DOMAIN ?? '[YOUR DOMAIN
     <script defer data-domain={plausibleDomain} src="https://plausible.io/js/script.js"></script>
   </head>
   <body>
+    <nav><a href="/">Blog</a><a href="/admin/">Write</a></nav>
     <slot />
   </body>
 </html>
+
+<style>
+  :global(*) { box-sizing: border-box; }
+  :global(body) {
+    max-width: 50rem;
+    margin: 0 auto;
+    padding: 2rem 1.25rem 5rem;
+    color: #202124;
+    background: #faf9f6;
+    font-family: system-ui, sans-serif;
+    line-height: 1.6;
+  }
+  nav { display: flex; justify-content: space-between; margin-bottom: 5rem; }
+  a { color: #8b3a2f; text-decoration: none; }
+  a:hover { text-decoration: underline; }
+  main, article { max-width: 42rem; margin: 0 auto; }
+  h1 { margin: 0; font-size: clamp(2.5rem, 8vw, 5rem); line-height: 1; }
+  h2 { margin-top: 4rem; }
+  .eyebrow { margin: 0 0 1rem; color: #8b3a2f; font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
+  .intro { max-width: 32rem; color: #646464; font-size: 1.15rem; }
+  .post-list { padding: 0; list-style: none; }
+  .post-list li { border-top: 1px solid #ddd8d0; }
+  .post-list a { display: block; padding: 1.25rem 0; }
+  .post-list strong, .post-list span { display: block; }
+  .post-list strong { font-size: 1.2rem; }
+  .post-list span { color: #646464; }
+  @media (max-width: 40rem) { nav { margin-bottom: 3rem; } }
+</style>
