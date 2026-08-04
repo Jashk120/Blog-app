@@ -13,7 +13,7 @@ public_folder: /images
 collections:
   - name: posts
     label: Posts
-    folder: src/content/blog
+    folder: ""
     create: true
     slug: "{{slug}}"
     extension: md
