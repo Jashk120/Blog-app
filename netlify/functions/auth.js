@@ -17,15 +17,14 @@ function sign(value, secret) {
 }
 
 function redirect(location) {
-  return { statusCode: 302, headers: { location }, body: '' };
+  return new Response(null, { status: 302, headers: { location } });
 }
 
 function errorResponse(message, statusCode = 500) {
-  return {
-    statusCode,
+  return new Response(message, {
+    status: statusCode,
     headers: { 'content-type': 'text/plain; charset=utf-8' },
-    body: message,
-  };
+  });
 }
 
 export default async function handler(request) {

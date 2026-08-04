@@ -1,11 +1,10 @@
 import { verifyState } from './auth.js';
 
 function response(body, statusCode = 200) {
-  return {
-    statusCode,
+  return new Response(body, {
+    status: statusCode,
     headers: { 'content-type': 'text/html; charset=utf-8' },
-    body,
-  };
+  });
 }
 
 function escapeHtml(value) {
