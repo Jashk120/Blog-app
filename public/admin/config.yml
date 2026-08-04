@@ -2,6 +2,7 @@ backend:
   name: github
   repo: Jashk120/blog-posts
   branch: main
+  base_url: https://jayesh-kathale.netlify.app/.netlify/functions
 
 publish_mode: editorial_workflow
 
