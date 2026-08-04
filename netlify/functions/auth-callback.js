@@ -51,10 +51,13 @@ export default async function handler(request) {
 <script>
   const message = ${JSON.stringify(`authorization:github:success:${message}`)};
   const allowedOrigin = ${JSON.stringify(state.origin)};
-  if (window.opener) {
-    window.opener.postMessage(message, allowedOrigin);
-    window.close();
-  }
+  window.addEventListener('message', event => {
+    if (event.origin === allowedOrigin && event.data === 'authorizing:github') {
+      event.source.postMessage(message, allowedOrigin);
+      window.close();
+    }
+  });
+  if (window.opener) window.opener.postMessage('authorizing:github', allowedOrigin);
 </script>
 <p>Authentication complete. You can close this window.</p>`);
   } catch (error) {
