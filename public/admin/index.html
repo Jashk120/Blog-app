@@ -7,5 +7,140 @@
   </head>
   <body>
     <script src="https://unpkg.com/decap-cms@^3.0.0/dist/decap-cms.js"></script>
+    <script>
+      // Register a preview template for the "posts" collection that renders
+      // markdown body with client-side Mermaid support so diagrams show while
+      // editing drafts (editorial workflow). Build-time rendering (rehype-mermaid)
+      // still handles the published site — this is preview-only.
+      (function () {
+        function initCMS() {
+          if (!window.CMS || !window.createClass || !window.h) {
+            setTimeout(initCMS, 100);
+            return;
+          }
+
+          var PostsPreview = createClass({
+            render: function () {
+              var entry = this.props.entry;
+              var title = entry.getIn(['data', 'title']) || 'Untitled';
+              var desc = entry.getIn(['data', 'description']);
+              return h('div', { style: { maxWidth: '42rem', margin: '0 auto', padding: '1.25rem', fontFamily: 'system-ui, sans-serif', lineHeight: '1.6', color: '#202124' } },
+                h('h1', { style: { margin: '0 0 0.5rem', fontSize: '2rem', lineHeight: '1.1' } }, title),
+                desc ? h('p', { style: { margin: '0 0 1.5rem', color: '#646464', fontStyle: 'italic' } }, desc) : null,
+                h('div', { className: 'cms-post-body' }, this.props.widgetFor('body'))
+              );
+            },
+            componentDidMount: function () { this._renderMermaid(); },
+            componentDidUpdate: function () { this._renderMermaid(); },
+
+            _ensureMermaid: function (doc, win, cb) {
+              if (win.mermaid) { cb(); return; }
+              if (doc.getElementById('mermaid-cdn')) return; // already loading
+              var s = doc.createElement('script');
+              s.id = 'mermaid-cdn';
+              s.src = 'https://cdn.jsdelivr.net/npm/mermaid@11/dist/mermaid.min.js';
+              s.onload = cb;
+              s.onerror = function () { console.error('Failed to load mermaid for preview'); };
+              doc.head.appendChild(s);
+              var style = doc.createElement('style');
+              style.textContent = '.mermaid{display:flex;justify-content:center;margin:1.5rem 0} .mermaid svg{max-width:100%;height:auto} pre.mermaid{background:transparent;padding:0}';
+              doc.head.appendChild(style);
+            },
+
+            _renderMermaid: function () {
+              var doc = this.props.document;
+              var win = this.props.window;
+              // Fallback for older Decap where props.document is undefined:
+              // try iframe lookup from parent document.
+              if (!doc || !win) {
+                var iframe = document.querySelector('iframe#preview-pane, iframe');
+                if (iframe && iframe.contentDocument) {
+                  doc = iframe.contentDocument;
+                  win = iframe.contentWindow;
+                } else {
+                  return;
+                }
+              }
+              var self = this;
+              this._ensureMermaid(doc, win, function () { self._doRender(doc, win); });
+              // If already loaded, render immediately too
+              if (win.mermaid) this._doRender(doc, win);
+            },
+
+            _doRender: function (doc, win) {
+              if (!win.mermaid) return;
+              try { win.mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose', flowchart: { htmlLabels: true, curve: 'linear' }, fontFamily: 'system-ui, sans-serif' }); } catch (e) {}
+              // mermaid code blocks produced by Decap's markdown widget:
+              // <pre><code class="language-mermaid">...</code></pre>
+              // Also handle <pre class="language-mermaid"><code> etc.
+              var nodes = doc.querySelectorAll('pre code.language-mermaid, pre code[class*="language-mermaid"], code.language-mermaid');
+              if (!nodes.length) {
+                // Fallback: any <pre> whose first child code contains flowchart/mermaid keywords?
+                // Decap sometimes strips class, so sniff content.
+                var allPres = doc.querySelectorAll('pre');
+                var fallback = [];
+                for (var i = 0; i < allPres.length; i++) {
+                  var txt = (allPres[i].textContent || '').trim();
+                  if (/^\s*(flowchart|graph|sequenceDiagram|classDiagram|stateDiagram|erDiagram|gantt|pie|journey)/.test(txt)) {
+                    fallback.push(allPres[i]);
+                  }
+                }
+                if (!fallback.length) return;
+                nodes = fallback; // treat pre itself as node container
+              }
+
+              var toRender = [];
+              for (var i = 0; i < nodes.length; i++) {
+                var code = nodes[i];
+                var pre = code.tagName === 'PRE' ? code : code.parentElement;
+                var isPre = pre && pre.tagName === 'PRE';
+                var container = isPre ? pre : code;
+                // avoid double processing noted by data attribute
+                if (container.getAttribute('data-mermaid-done') === 'true') continue;
+                var def = (code.tagName === 'PRE' ? code.textContent : code.textContent) || '';
+                def = def.trim();
+                if (!def) continue;
+                var div = doc.createElement('div');
+                div.className = 'mermaid';
+                div.textContent = def;
+                // mark original so we don't reprocess if React reuses node
+                container.setAttribute('data-mermaid-done', 'true');
+                if (isPre) pre.parentNode.replaceChild(div, pre);
+                else code.parentNode.replaceChild(div, code);
+                toRender.push(div);
+              }
+              if (!toRender.length) {
+                // might be second render where div.mermaid already exists but not yet processed
+                var existing = doc.querySelectorAll('div.mermaid:not([data-processed])');
+                if (!existing.length) return;
+                toRender = Array.prototype.slice.call(existing);
+              }
+              try {
+                // mermaid v11: mermaid.run({nodes})
+                if (win.mermaid.run) {
+                  win.mermaid.run({ nodes: toRender }).catch(function (e) { console.error('mermaid run error', e); });
+                } else if (win.mermaid.init) {
+                  win.mermaid.init(undefined, toRender);
+                }
+              } catch (e) { console.error('mermaid render error', e); }
+            }
+          });
+
+          CMS.registerPreviewTemplate('posts', PostsPreview);
+
+          // Optional: editor component so toolbar has "Mermaid" block with live preview
+          CMS.registerEditorComponent({
+            id: 'mermaid',
+            label: 'Mermaid',
+            fields: [{ name: 'code', label: 'Diagram', widget: 'text' }],
+            pattern: /^```mermaid\n([\s\S]*?)\n```$/,
+            fromBlock: function (match) { return { code: match[1] }; },
+            toBlock: function (obj) { return '```mermaid\n' + obj.code + '\n```'; },
+            toPreview: function (obj) { return '<div class="mermaid">' + obj.code + '</div>'; }
+          });
+        }
+        initCMS();
+      })();
+    </script>
   </body>
 </html>

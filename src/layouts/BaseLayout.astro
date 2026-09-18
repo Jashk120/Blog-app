@@ -44,4 +44,7 @@ const plausibleDomain = import.meta.env.PUBLIC_PLAUSIBLE_DOMAIN ?? '[YOUR DOMAIN
   .eyebrow { margin: 0 0 1rem; color: #8b3a2f; font-size: .8rem; font-weight: 700; letter-spacing: .12em; text-transform: uppercase; }
   .intro { max-width: 32rem; color: #646464; font-size: 1.15rem; }
   @media (max-width: 40rem) { nav { margin-bottom: 3rem; } }
+  /* mermaid — build-time inline SVG (rehype-mermaid) */
+  :global(pre.mermaid) { display: flex; justify-content: center; margin: 2rem 0; background: transparent; padding: 0; }
+  :global(pre.mermaid svg) { max-width: 100%; height: auto; }
 </style>
