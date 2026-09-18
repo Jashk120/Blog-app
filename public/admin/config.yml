@@ -1,6 +1,6 @@
 backend:
   name: github
-  repo: Jashk120/blog-posts
+  repo: Jashk120/Blog-app
   branch: main
   base_url: https://jayesh-kathale.netlify.app
   auth_endpoint: /.netlify/functions/auth
@@ -13,7 +13,7 @@ public_folder: /images
 collections:
   - name: posts
     label: Posts
-    folder: posts
+    folder: src/content/blog/posts
     create: true
     slug: "{{slug}}"
     extension: md
