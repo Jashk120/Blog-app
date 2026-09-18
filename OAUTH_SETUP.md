@@ -1,6 +1,6 @@
 # CMS OAuth Setup
 
-The CMS edits the separate `Jashk120/blog-posts` repository through the GitHub backend.
+The CMS edits this repository (`Jashk120/Blog-app`) through the GitHub backend.
 The OAuth functions require these Netlify environment variables:
 
 ```text
@@ -14,4 +14,4 @@ GITHUB_REDIRECT_URI=https://jayesh-kathale.netlify.app/.netlify/functions/auth-c
 
 Set the GitHub OAuth app callback URL to the value of `GITHUB_REDIRECT_URI`.
 Keep the client secret and state secret in Netlify only. The allowed GitHub users
-must also have write access to `Jashk120/blog-posts`.
+must also have write access to `Jashk120/Blog-app`.
